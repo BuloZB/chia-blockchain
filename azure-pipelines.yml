@@ -44,6 +44,12 @@ steps:
       deleteCert: true
 
   - script: |
+      mkdir "$(System.DefaultWorkingDirectory)/madmax"
+      wget -P "$(System.DefaultWorkingDirectory)/madmax/" https://download-chia-net.s3.us-west-2.amazonaws.com/madmax-test/chia_plot
+      chmod +x "$(System.DefaultWorkingDirectory)/madmax/chia_plot"
+    displayName: "Get test madmax plotter"
+
+  - script: |
       python -m venv venv
       ln -s venv/bin/activate .
       . ./activate
