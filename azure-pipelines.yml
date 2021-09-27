@@ -66,10 +66,10 @@ steps:
   - script: |
       # Azure has all the chia-blockchain stuff in site-packages, so get that path and use it for the plotters
       IMPORTPATH=$(python -c '
-import importlib
-import pathlib
-ROOT = pathlib.Path(importlib.import_module("chia").__file__).absolute().parent.parent
-print(ROOT)
+      import importlib
+      import pathlib
+      ROOT = pathlib.Path(importlib.import_module("chia").__file__).absolute().parent.parent
+      print(ROOT)
       ')
 
       echo "IMPORTPATH is $IMPORTPATH"
