@@ -67,7 +67,7 @@ steps:
       . ./activate
 
       # Azure has all the chia-blockchain stuff in site-packages, so get that path and use it for the plotters
-      IMPORTPATH=$(python -c 'import pathlib; import chia; ROOT = pathlib.Path(chia.PYINSTALLER_SPEC_PATH).absolute().parent.parent; print(ROOT);')
+      IMPORTPATH=$(python -c 'import pathlib; import importlib; ROOT = pathlib.Path(importlib.import_module("chia").PYINSTALLER_SPEC_PATH).absolute().parent.parent; print(ROOT);')
       echo "IMPORTPATH is $IMPORTPATH"
 
       mkdir "$IMPORTPATH/madmax"
