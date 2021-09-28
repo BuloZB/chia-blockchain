@@ -43,8 +43,7 @@ steps:
       keychain: temp
       deleteCert: true
 
-  - displayName: Create installer version number
-    script: |
+  - script: |
       python3 -m venv ../venv
       . ../venv/bin/activate
       pip install setuptools_scm
@@ -52,24 +51,24 @@ steps:
       python -m installer-version > $(System.DefaultWorkingDirectory)/build_scripts/version.txt
       cat $(System.DefaultWorkingDirectory)/build_scripts/version.txt
       deactivate
+    displayName: Create installer version number
 
-  - displayName: "Install dependencies"
-    script: |
+  - script: |
       sh install.sh
+    displayName: "Install dependencies"
 
-  - displayName: "Get test madmax plotter"
-    script: |
+  - script: |
       mkdir "$(System.DefaultWorkingDirectory)/madmax"
       wget -P "$(System.DefaultWorkingDirectory)/madmax/" https://download-chia-net.s3.us-west-2.amazonaws.com/madmax-test/chia_plot
       chmod +x "$(System.DefaultWorkingDirectory)/madmax/chia_plot"
+    displayName: "Get test madmax plotter"
 
   - task: NodeTool@0
     inputs:
       versionSpec: '14.x'
     displayName: "Setup Node 14.x"
 
-  - displayName: "Build DMG with build_scripts/build_macos.sh"
-    bash: |
+  - bash: |
       . ./activate
       APPLE_NOTARIZE_USERNAME="$(APPLE_NOTARIZE_USERNAME)"
       export APPLE_NOTARIZE_USERNAME
@@ -78,6 +77,7 @@ steps:
       if [ "$(APPLE_NOTARIZE_PASSWORD)" ]; then NOTARIZE="true"; export NOTARIZE; fi
       cd build_scripts || exit
       sh build_macos.sh
+    displayName: "Build DMG with build_scripts/build_macos.sh"
 
   - task: PublishPipelineArtifact@1
     inputs:
