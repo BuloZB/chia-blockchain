@@ -48,7 +48,7 @@ steps:
       . ../venv/bin/activate
       pip install setuptools_scm
       touch $(System.DefaultWorkingDirectory)/build_scripts/version.txt
-      python -m installer-version > $(System.DefaultWorkingDirectory)/build_scripts/version.txt
+      python ./build_scripts/installer-version.py > $(System.DefaultWorkingDirectory)/build_scripts/version.txt
       cat $(System.DefaultWorkingDirectory)/build_scripts/version.txt
       deactivate
     displayName: Create installer version number
