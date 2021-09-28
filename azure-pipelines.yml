@@ -43,54 +43,41 @@ steps:
       keychain: temp
       deleteCert: true
 
-  - script: |
-      python -m venv venv
-      ln -s venv/bin/activate .
-      . ./activate
-      python -m pip install --upgrade pip
-      pip install wheel pep517 setuptools_scm
-      node -v
-      pip install -i https://pypi.chia.net/simple/ miniupnpc==2.2.2
-      cd build_scripts
+  - displayName: Create installer version number
+    script: |
+      python3 -m venv ../venv
+      . ../venv/bin/activate
+      pip install setuptools_scm
       touch $(System.DefaultWorkingDirectory)/build_scripts/version.txt
       python -m installer-version > $(System.DefaultWorkingDirectory)/build_scripts/version.txt
-    displayName: "Install dependencies"
+      cat $(System.DefaultWorkingDirectory)/build_scripts/version.txt
+      deactivate
 
-  - script: |
-      . ./activate
-      clang --version
-      pip wheel --use-pep517 --extra-index-url https://pypi.chia.net/simple/ --wheel-dir=wheels .
-      pip install --no-index --find-links=./wheels/ chia-blockchain
-    displayName: "Build and install wheels"
+  - displayName: "Install dependencies"
+    script: |
+      sh install.sh
 
-  - script: |
-      . ./activate
-
-      # Azure has all the chia-blockchain stuff in site-packages, so get that path and use it for the plotters
-      IMPORTPATH=$(python -c 'import pathlib; import importlib; ROOT = pathlib.Path(importlib.import_module("chia").PYINSTALLER_SPEC_PATH).absolute().parent.parent; print(ROOT);')
-      echo "IMPORTPATH is $IMPORTPATH"
-
-      mkdir "$IMPORTPATH/madmax"
-      wget -P "$IMPORTPATH/madmax/" https://download-chia-net.s3.us-west-2.amazonaws.com/madmax-test/chia_plot
-      chmod +x "$IMPORTPATH/madmax/chia_plot"
-    displayName: "Get test madmax plotter"
+  - displayName: "Get test madmax plotter"
+    script: |
+      mkdir "$(System.DefaultWorkingDirectory)/madmax"
+      wget -P "$(System.DefaultWorkingDirectory)/madmax/" https://download-chia-net.s3.us-west-2.amazonaws.com/madmax-test/chia_plot
+      chmod +x "$(System.DefaultWorkingDirectory)/madmax/chia_plot"
 
   - task: NodeTool@0
     inputs:
       versionSpec: '14.x'
     displayName: "Setup Node 14.x"
 
-  - bash: |
+  - displayName: "Build DMG with build_scripts/build_macos.sh"
+    bash: |
       . ./activate
       APPLE_NOTARIZE_USERNAME="$(APPLE_NOTARIZE_USERNAME)"
       export APPLE_NOTARIZE_USERNAME
       APPLE_NOTARIZE_PASSWORD="$(APPLE_NOTARIZE_PASSWORD)"
       export APPLE_NOTARIZE_PASSWORD
       if [ "$(APPLE_NOTARIZE_PASSWORD)" ]; then NOTARIZE="true"; export NOTARIZE; fi
-      git submodule update --init --recursive
       cd build_scripts || exit
       sh build_macos.sh
-    displayName: "Build DMG with build_scripts/build_macos.sh"
 
   - task: PublishPipelineArtifact@1
     inputs:
