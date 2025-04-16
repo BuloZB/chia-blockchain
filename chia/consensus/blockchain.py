@@ -130,6 +130,7 @@ class Blockchain:
         *,
         single_threaded: bool = False,
         log_coins: bool = False,
+        selected_network: Optional[str] = None,
     ) -> Blockchain:
         """
         Initializes a blockchain with the BlockRecords from disk, assuming they have all been
@@ -157,7 +158,7 @@ class Blockchain:
         self.coin_store = coin_store
         self.block_store = block_store
         self._shut_down = False
-        await self._load_chain_from_store(blockchain_dir)
+        await self._load_chain_from_store(blockchain_dir, selected_network)
         self._seen_compact_proofs = set()
         return self
 
@@ -165,11 +166,11 @@ class Blockchain:
         self._shut_down = True
         self.pool.shutdown(wait=True)
 
-    async def _load_chain_from_store(self, blockchain_dir: Path) -> None:
+    async def _load_chain_from_store(self, blockchain_dir: Path, selected_network: Optional[str] = None) -> None:
         """
         Initializes the state of the Blockchain class from the database.
         """
-        self.__height_map = await BlockHeightMap.create(blockchain_dir, self.block_store.db_wrapper)
+        self.__height_map = await BlockHeightMap.create(blockchain_dir, self.block_store.db_wrapper, selected_network)
         self.__block_records = {}
         self.__heights_in_cache = {}
         block_records, peak = await self.block_store.get_block_records_close_to_peak(self.constants.BLOCKS_CACHE_SIZE)
@@ -361,7 +362,7 @@ class Blockchain:
             fork_info.reset(block.height - 1, block.prev_header_hash)
 
         # we dont consider block_record passed in here since it might be from
-        # a current sync process and not yet fully validated and commited to the DB
+        # a current sync process and not yet fully validated and committed to the DB
         block_rec_from_db = await self.get_block_record_from_db(header_hash)
         if block_rec_from_db is not None:
             # We have already validated the block, but if it's not part of the
